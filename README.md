@@ -33,6 +33,23 @@ cd mycodex
 python3 install.py --install-dir ~/.claude
 ```
 
+## Install into Codex CLI (Optional)
+
+If you want to use MyCodex as a **slash command** inside **Codex CLI** (e.g. `/mycodex-dev`), install the prompt into `~/.codex/prompts`:
+
+```bash
+mkdir -p "$HOME/.codex/prompts"
+cp "./codex-prompts/mycodex-dev.md" "$HOME/.codex/prompts/mycodex-dev.md"
+```
+
+Then start Codex in your target project:
+
+```bash
+codex --enable skills -C "/path/to/your/project"
+```
+
+Inside Codex, run: `/mycodex-dev "your task description"`
+
 ## Workflows Overview
 
 ### 1. Dev Workflow (Recommended)
@@ -126,7 +143,7 @@ Requirements → Architecture → Sprint Plan → Development → Review → QA
 
 ## Enterprise Workflow Features
 
-- **Multi-backend execution:** `codeagent-wrapper --backend codex|claude|gemini` (default `codex`) so you can match the model to the task without changing workflows.
+- **Multi-backend execution:** `codeagent-wrapper --backend codex|claude|gemini` (default `claude`) so you can match the model to the task without changing workflows.
 - **GitHub workflow commands:** `/gh-create-issue "short need"` creates structured issues; `/gh-issue-implement 123` pulls issue #123, drives development, and prepares the PR.
 - **Skills + hooks activation:** .claude/hooks run automation (tests, reviews), while `.claude/skills/skill-rules.json` auto-suggests the right skills. Keep hooks enabled in `.claude/settings.json` to activate the enterprise workflow helpers.
 
@@ -167,8 +184,8 @@ python3 install.py --force
 ├── commands/              # Slash commands (/dev, /code, etc.)
 ├── agents/                # Agent definitions
 ├── skills/
-│   └── codex/
-│       └── SKILL.md       # Codex integration skill
+│   └── codeagent/
+│       └── SKILL.md       # codeagent-wrapper integration skill
 └── installed_modules.json # Installation status
 ```
 
@@ -186,7 +203,7 @@ Edit `config.json` to customize:
       "operations": [
         {"type": "merge_dir", "source": "dev-workflow"},
         {"type": "copy_file", "source": "memorys/CLAUDE.md", "target": "CLAUDE.md"},
-        {"type": "copy_file", "source": "skills/codex/SKILL.md", "target": "skills/codex/SKILL.md"},
+        {"type": "copy_file", "source": "skills/codeagent/SKILL.md", "target": "skills/codeagent/SKILL.md"},
         {"type": "run_command", "command": "bash install.sh"}
       ]
     }
@@ -204,16 +221,21 @@ Edit `config.json` to customize:
 
 ---
 
-## Codex Integration
+## Codeagent Integration
 
-The `codex` skill enables Claude Code to delegate code execution to Codex CLI.
+The `codeagent` skill enables Claude Code to delegate tasks to `codeagent-wrapper`, routing work to Codex (planning/analysis), Claude (implementation), or Gemini (rapid prototyping) via `--backend`.
 
 ### Usage in Workflows
 
 ```bash
-# Codex is invoked via the skill
+# Claude (default) is invoked via the skill
 codeagent-wrapper - <<'EOF'
 implement @src/auth.ts with JWT validation
+EOF
+
+# Codex for planning/analysis
+codeagent-wrapper --backend codex - <<'EOF'
+analyze @src/auth.ts and propose an implementation plan + test strategy
 EOF
 ```
 
@@ -236,7 +258,7 @@ create React components consuming the API
 EOF
 ```
 
-### Install Codex Wrapper
+### Install codeagent-wrapper
 
 ```bash
 # Automatic (via dev module)
